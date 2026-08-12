@@ -1,0 +1,5 @@
+# dev symlinks to the soundtrack folders in drSongRanker.
+# real copies get bundled in the delivery zip.
+*soundtrack
+.testsongs/
+__pycache__/

@@ -1,0 +1,807 @@
+/* stripped from drSongRanker. same look, no themes. */
+
+:root {
+	--bg-color: #000000;
+	--card-bg: #111;
+	--text-color: #fff;
+	--accent-color: #00ff9d;
+	/* default ralsei green */
+	--danger-color: #ff4444;
+	--grid-color: #330033;
+	--grid-line: #660066;
+	--border-width: 3px;
+	--ui-font: "Roboto Mono", ui-monospace, monospace;
+}
+
+.hidden {
+	display: none !important;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: var(--bg-color);
+	background-image:
+		linear-gradient(var(--grid-line) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+	background-size: 40px 40px;
+	background-position: center top;
+
+	color: var(--text-color);
+	font-family: var(--ui-font);
+	font-size: 16px;
+	margin: 0;
+	padding: 0;
+	min-height: 100vh;
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	overflow-x: hidden;
+}
+
+.main-container {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+	gap: 30px;
+	flex-grow: 1;
+	position: relative;
+	z-index: 1;
+}
+
+#stats-bar {
+	width: 100%;
+	text-align: center;
+	padding: 15px;
+	background: #000;
+	border-bottom: var(--border-width) solid var(--accent-color);
+	font-size: 0.9em;
+	color: #fff;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	font-weight: bold;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.arena-container {
+	flex: 2;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* full screen drop zone. covers everything until a folder lands. */
+#drop-zone {
+	position: fixed;
+	inset: 0;
+	z-index: 2000;
+	background: #000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	text-align: center;
+	padding: 40px;
+	border: var(--border-width) dashed #444;
+	margin: 20px;
+}
+
+#drop-zone.dragging {
+	border-color: var(--accent-color);
+	background: #0a1a12;
+}
+
+#drop-zone h2 {
+	font-size: 1.6em;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+}
+
+#drop-zone p {
+	color: #ccc;
+	font-size: 0.95em;
+	max-width: 520px;
+}
+
+#drop-zone .drop-muted {
+	color: #666;
+	font-size: 0.8em;
+}
+
+#drop-zone .drop-status {
+	color: var(--accent-color);
+	font-size: 0.75em;
+	min-height: 1.2em;
+}
+
+h1 {
+	font-size: 2em;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	margin-bottom: 40px;
+	color: #fff;
+	text-shadow: 3px 3px 0 #000;
+	background: #000;
+	padding: 5px 10px;
+	border: var(--border-width) solid #fff;
+}
+
+.arena {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 40px;
+	width: 100%;
+	margin-bottom: 40px;
+}
+
+.song-card {
+	border: var(--border-width) solid #fff;
+	padding: 30px;
+	width: 45%;
+	min-width: 0;
+	min-height: 220px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	background: #000;
+	transition: transform 0.1s;
+	position: relative;
+	overflow: hidden;
+}
+
+.song-rank {
+	position: absolute;
+	top: 10px;
+	right: 15px;
+	font-size: 1.2em;
+	font-weight: bold;
+	color: var(--accent-color);
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+/* mouse hovering stuff */
+@media (hover: hover) {
+	.song-card:hover {
+		transform: translate(-4px, -4px);
+		border-color: var(--accent-color);
+		box-shadow: 4px 4px 0 var(--accent-color);
+	}
+
+	button:hover {
+		background: var(--accent-color);
+		color: #000;
+		border-color: var(--accent-color);
+		box-shadow: 0 0 10px var(--accent-color);
+	}
+
+	.preview-btn:hover,
+	.full-play-btn:hover {
+		border-color: var(--accent-color);
+		color: var(--accent-color);
+		background: #000;
+	}
+
+	.choice-btn:hover {
+		background: var(--accent-color);
+		color: #000;
+	}
+}
+
+.song-card h2 {
+	font-size: 1.4em;
+	margin: 0 0 25px 0;
+	line-height: 1.4;
+	font-weight: 700;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.vs {
+	font-size: 2em;
+	font-weight: bold;
+	color: #fff;
+	text-shadow: 2px 2px 0 #000;
+}
+
+/* Buttons */
+button {
+	background: #000;
+	color: #fff;
+	border: var(--border-width) solid #fff;
+	font-family: var(--ui-font);
+	font-size: 1em;
+	padding: 12px 24px;
+	cursor: pointer;
+	transition: all 0.1s;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+button:hover {
+	background: var(--accent-color);
+	color: #000;
+	border-color: var(--accent-color);
+	box-shadow: 0 0 10px var(--accent-color);
+}
+
+button:active {
+	transform: translate(2px, 2px);
+}
+
+.preview-btn,
+.full-play-btn {
+	font-size: 0.8em;
+	border: 2px solid #666;
+	color: #aaa;
+	margin-top: auto;
+	padding: 8px 16px;
+	width: 100%;
+}
+
+.card-controls {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+	margin-top: auto;
+}
+
+.vote-btn {
+	border: var(--border-width) solid var(--accent-color);
+	color: var(--accent-color);
+	background: #000;
+	padding: 8px 12px;
+	font-size: 0.85em;
+	font-family: var(--ui-font);
+	cursor: pointer;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.vote-btn:hover {
+	background: var(--accent-color);
+	color: #000;
+}
+
+.mobile-vote-btn {
+	display: none;
+}
+
+.choices {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-bottom: 40px;
+	width: 100%;
+}
+
+.choice-btn {
+	border: var(--border-width) solid var(--accent-color);
+	color: var(--accent-color);
+	padding: 8px 12px;
+	font-size: 0.9em;
+	/* keep buttons from wrapping, they'd shift the layout */
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* storage mode options on the start screen: title + tradeoff lines */
+#drop-zone .mode-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	max-width: 460px;
+	white-space: normal;
+}
+
+#drop-zone .mode-option .mode-title {
+	font-size: 1em;
+}
+
+#drop-zone .mode-option .mode-tradeoff {
+	font-size: 0.72em;
+	color: #888;
+}
+
+#drop-zone .mode-option.active {
+	background: var(--accent-color);
+	color: #000;
+}
+
+#drop-zone .mode-option.active .mode-tradeoff {
+	color: #222;
+}
+
+/* the song pick buttons get locked widths */
+#chooseA-btn,
+#chooseB-btn {
+	width: 220px;
+	min-width: 220px;
+	max-width: 220px;
+	flex-shrink: 0;
+}
+
+/* middle buttons stay small and predictable */
+#undo-btn {
+	width: 100px;
+	min-width: 100px;
+	max-width: 100px;
+	flex-shrink: 0;
+}
+
+#undo-btn {
+	border-color: #888;
+	color: #888;
+}
+
+#undo-btn:not(:disabled):hover {
+	background: #888;
+	color: #000;
+	border-color: #888;
+}
+
+#undo-btn:disabled {
+	border-color: #333;
+	color: #333;
+	cursor: default;
+	opacity: 0.5;
+}
+
+/* Progress Bar */
+#progress-container {
+	width: 80%;
+	height: 20px;
+	background: #000;
+	border: var(--border-width) solid #fff;
+	position: relative;
+	margin-bottom: 40px;
+}
+
+#progress-bar {
+	height: 100%;
+	background-color: var(--accent-color);
+	width: 0%;
+	transition: width 0.3s steps(5);
+}
+
+#progress-text {
+	position: absolute;
+	top: -25px;
+	left: 0;
+	width: 100%;
+	text-align: center;
+	font-size: 0.9em;
+	color: #fff;
+	text-shadow: 2px 2px 0 #000;
+}
+
+/* Ranking Sidebar */
+.ranking-container {
+	flex: 1;
+	border: var(--border-width) solid #fff;
+	padding: 0;
+	height: 80vh;
+	overflow-y: auto;
+	background: #000;
+}
+
+.ranking-container.visible {
+	display: block;
+}
+
+.ranking-actions {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	padding: 10px;
+	border-bottom: var(--border-width) solid #222;
+}
+
+.action-btn {
+	background: #000;
+	border: var(--border-width) solid #fff;
+	color: #fff;
+	padding: 5px 10px;
+	font-family: var(--ui-font);
+	font-size: 0.8em;
+	cursor: pointer;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+.action-btn:hover {
+	background: var(--accent-color);
+	color: #000;
+	border-color: var(--accent-color);
+}
+
+#ranking-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	counter-reset: rank-counter;
+}
+
+#ranking-list li {
+	padding: 12px 15px;
+	border-bottom: 2px solid #222;
+	display: flex;
+	align-items: center;
+	font-size: 0.95em;
+	counter-increment: rank-counter;
+	cursor: pointer;
+	transition: background 0.1s;
+}
+
+#ranking-list li:hover {
+	background: #222;
+}
+
+#ranking-list li::before {
+	content: counter(rank-counter);
+	color: #fff;
+	font-weight: bold;
+	width: 30px;
+	flex-shrink: 0;
+	text-align: center;
+	margin-right: 15px;
+	background: #333;
+	padding: 2px 0;
+}
+
+#ranking-list li:first-child {
+	background: #111;
+	border-bottom: 2px solid var(--accent-color);
+	color: var(--text-color);
+	font-weight: bold;
+}
+
+#ranking-list li:first-child::before {
+	background: var(--accent-color);
+	color: #000;
+}
+
+.song-name {
+	flex-grow: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-right: 10px;
+	min-width: 0;
+}
+
+#ranking-list small {
+	color: #555;
+	font-size: 0.75em;
+	margin-right: 15px;
+	font-weight: normal;
+	flex-shrink: 0;
+}
+
+/* Controls & Footer */
+.controls {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+	margin-top: auto;
+	width: 100%;
+}
+
+.controls .choice-btn,
+.controls button {
+	flex: 1;
+	font-size: 0.9em;
+	padding: 8px 12px;
+}
+
+footer {
+	margin-top: auto;
+	padding: 20px;
+	text-align: center;
+	font-size: 0.75em;
+	color: #888;
+	background: #000;
+	border-top: var(--border-width) solid #fff;
+	position: relative;
+	z-index: 1;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+	.main-container {
+		flex-direction: column;
+	}
+
+	.ranking-container {
+		display: none;
+		/* hidden by default on mobile, toggled via JS */
+		width: 100%;
+		height: auto;
+		/* allow it to grow */
+		overflow-y: visible;
+		/* scroll with the page */
+		margin-top: 20px;
+	}
+
+	.ranking-container.visible {
+		display: block;
+	}
+
+	.arena {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.song-card {
+		width: 100%;
+	}
+
+	.card-controls {
+		flex-wrap: wrap;
+	}
+
+	.choices {
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.mobile-vote-btn {
+		display: block;
+		width: 100%;
+		margin-top: 8px;
+	}
+
+	#chooseA-btn,
+	#chooseB-btn {
+		display: none;
+	}
+
+	/* unlock the fixed widths on mobile. column layout needs full width. */
+	#undo-btn {
+		width: 100%;
+		min-width: unset;
+		max-width: 100%;
+	}
+
+	.controls {
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.controls .choice-btn,
+	.controls button {
+		width: 100%;
+		font-size: 0.9em;
+	}
+
+	#toggle-rankings-btn {
+		display: block;
+		width: 100%;
+		margin-bottom: 10px;
+	}
+}
+
+@media (min-width: 801px) {
+	#toggle-rankings-btn {
+		display: none;
+	}
+}
+
+/* Animations */
+@keyframes slideInRight {
+	from {
+		transform: translateX(50px);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		transform: translateX(-50px);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+.arena.slide-in .song-card:first-child {
+	animation: slideInLeft 0.3s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.arena.slide-in .song-card:last-child {
+	animation: slideInRight 0.3s cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+	width: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #fff;
+	border: 2px solid #000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--accent-color);
+}
+
+/* Music Player Bar */
+#music-player-bar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background: #000;
+	border-top: var(--border-width) solid var(--accent-color);
+	padding: 15px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	z-index: 1000;
+	box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8);
+	transition: transform 0.3s ease-in-out;
+}
+
+#music-player-bar.hidden {
+	transform: translateY(100%);
+}
+
+.player-info {
+	color: #fff;
+	font-family: var(--ui-font);
+	font-size: 1.1em;
+	text-transform: uppercase;
+	margin-left: 20px;
+}
+
+.player-controls {
+	display: flex;
+	gap: 15px;
+	margin-right: 20px;
+}
+
+.player-controls button {
+	background: #000;
+	border: var(--border-width) solid #fff;
+	color: #fff;
+	padding: 5px 15px;
+	font-size: 1.2em;
+	cursor: pointer;
+	transition: all 0.1s;
+}
+
+@media (hover: hover) {
+	.player-controls button:hover {
+		background: var(--accent-color);
+		color: #000;
+		border-color: var(--accent-color);
+	}
+}
+
+.volume-control {
+	display: flex;
+	align-items: center;
+	margin-right: 20px;
+}
+
+#volume-slider,
+#player-progress {
+	-webkit-appearance: none;
+	appearance: none;
+	height: 6px;
+	background: #333;
+	outline: none;
+	border: 1px solid #fff;
+	cursor: pointer;
+}
+
+#player-progress {
+	flex: 1;
+	margin: 0 15px;
+}
+
+#volume-slider {
+	width: 100px;
+}
+
+#volume-slider::-webkit-slider-thumb,
+#player-progress::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	background: #000;
+	border: 2px solid #fff;
+	cursor: pointer;
+	transition: background 0.1s;
+}
+
+/* firefox support */
+#volume-slider::-moz-range-thumb,
+#player-progress::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	background: #000;
+	border: 2px solid #fff;
+	cursor: pointer;
+	border-radius: 0;
+	transition: background 0.1s;
+}
+
+#volume-slider::-webkit-slider-thumb:hover,
+#player-progress::-webkit-slider-thumb:hover {
+	background: var(--accent-color);
+	border-color: var(--accent-color);
+}
+
+#volume-slider::-moz-range-thumb:hover,
+#player-progress::-moz-range-thumb:hover {
+	background: var(--accent-color);
+	border-color: var(--accent-color);
+}
+
+.progress-area {
+	flex: 2;
+	display: flex;
+	align-items: center;
+	color: #fff;
+	font-family: var(--ui-font);
+	font-size: 0.8em;
+	padding: 0 20px;
+}
+
+#player-current-time,
+#player-duration {
+	min-width: 45px;
+	text-align: center;
+}
+
+/* Responsive adjustments for player */
+@media (max-width: 600px) {
+	#music-player-bar {
+		flex-direction: column;
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.player-info {
+		margin-left: 0;
+		text-align: center;
+		font-size: 0.9em;
+	}
+
+	.player-controls {
+		margin-right: 0;
+	}
+}

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Song Ranker</title>
+    <link rel="icon" type="image/x-icon" href="Art/favicon.ico" />
+    <meta name="darkreader-lock" />
+
+    <link rel="stylesheet" href="style.css?v=modeoptions" />
+  </head>
+
+  <body>
+    <div id="stats-bar">
+      <span id="personal-vote-stat" style="color: var(--accent-color)"
+        >YOUR VOTES: 0</span
+      >
+    </div>
+
+    <!-- full screen drop zone. covers everything until a folder is loaded. -->
+    <div id="drop-zone">
+      <h2 id="drop-title">DROP YOUR SONGS FOLDER</h2>
+      <p>
+        every audio file becomes a song, named after its filename. click to
+        browse instead.
+      </p>
+      <p class="drop-muted">mp3, ogg, wav, flac, m4a, aac, opus, webm.</p>
+      <button id="browse-btn" class="choice-btn">Choose Folder</button>
+      <button id="direct-mode-btn" class="choice-btn mode-option hidden">
+        <span class="mode-title">use direct access?</span>
+        <span class="mode-tradeoff"
+          >reads in place, no disk space. needs folder permission, folder has to
+          stay put</span
+        >
+      </button>
+      <button id="copies-mode-btn" class="choice-btn mode-option hidden">
+        <span class="mode-title">use copies?</span>
+        <span class="mode-tradeoff"
+          >songs copied into the browser, uses disk space. no permissions,
+          folder can move or vanish</span
+        >
+      </button>
+      <button id="copy-mode-btn" class="choice-btn hidden">
+        Store a Copy (safer, uses disk space)
+      </button>
+      <p id="reconnect-hint" class="hidden">
+        your saved folder needs one click to reconnect.
+      </p>
+      <button id="reconnect-btn" class="choice-btn hidden"></button>
+      <p id="drop-status" class="drop-status"></p>
+    </div>
+
+    <div class="main-container">
+      <div class="arena-container">
+        <h1 id="main-title">Which song is better?</h1>
+        <div class="arena">
+          <div id="songA-card" class="song-card">
+            <div id="songA-rank" class="song-rank"></div>
+            <h2 id="songA-name"></h2>
+            <div class="card-controls">
+              <button class="preview-btn" data-song="A">Preview</button>
+              <button class="full-play-btn" data-song="A">Play Full</button>
+              <button class="vote-btn mobile-vote-btn" id="chooseA-mobile-btn">
+                Choose A
+              </button>
+            </div>
+          </div>
+          <div class="vs" id="vs-text">VS</div>
+          <div id="songB-card" class="song-card">
+            <div id="songB-rank" class="song-rank"></div>
+            <h2 id="songB-name"></h2>
+            <div class="card-controls">
+              <button class="preview-btn" data-song="B">Preview</button>
+              <button class="full-play-btn" data-song="B">Play Full</button>
+              <button class="vote-btn mobile-vote-btn" id="chooseB-mobile-btn">
+                Choose B
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="choices">
+          <button id="chooseA-btn" class="choice-btn">Choose A</button>
+          <button
+            id="skip-btn"
+            class="choice-btn"
+            title="Skip this matchup without saving"
+          >
+            Skip
+          </button>
+          <button id="undo-btn" class="choice-btn" disabled>Undo</button>
+          <button id="chooseB-btn" class="choice-btn">Choose B</button>
+        </div>
+        <div id="progress-container">
+          <div id="progress-bar"></div>
+          <div id="progress-text"></div>
+        </div>
+        <div class="controls">
+          <button id="toggle-rankings-btn" class="choice-btn">
+            Show Rankings
+          </button>
+        </div>
+      </div>
+
+      <div class="ranking-container">
+        <div class="ranking-actions">
+          <button id="change-folder-btn" class="action-btn">
+            Change Folder
+          </button>
+          <button id="play-list-btn" class="action-btn">Play This List</button>
+          <button
+            id="reset-btn"
+            class="action-btn"
+            style="border-color: #500; color: #f55"
+          >
+            Reset Ratings
+          </button>
+        </div>
+
+        <ul id="ranking-list">
+          <!-- rankings will be populated here -->
+        </ul>
+      </div>
+    </div>
+
+    <div id="music-player-bar" class="hidden">
+      <div class="player-info">
+        <span id="player-song-name">Now Playing...</span>
+      </div>
+      <div class="progress-area">
+        <span id="player-current-time">0:00</span>
+        <input
+          type="range"
+          id="player-progress"
+          min="0"
+          max="100"
+          value="0"
+          step="0.1"
+        />
+        <span id="player-duration">0:00</span>
+      </div>
+      <div class="player-controls">
+        <button id="player-prev-btn">⏮</button>
+        <button id="player-play-btn">⏯</button>
+        <button id="player-next-btn">⏭</button>
+        <button id="player-close-btn">✖</button>
+      </div>
+      <div class="volume-control">
+        <input
+          type="range"
+          id="volume-slider"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.5"
+          title="Volume"
+        />
+      </div>
+      <audio id="playlist-audio"></audio>
+    </div>
+
+    <audio id="audioA"></audio>
+    <audio id="audioB"></audio>
+
+    <footer>
+      <p class="credits">
+        Fan Project. stripped from
+        <a
+          href="https://github.com/stavros-alt/drSongRanker"
+          target="_blank"
+          style="color: #666; text-decoration: none; margin-right: 10px"
+          >drSongRanker</a
+        >
+      </p>
+    </footer>
+
+    <input type="file" id="folder-input" webkitdirectory multiple hidden />
+    <script src="app.js?v=modeoptions"></script>
+  </body>
+</html>
