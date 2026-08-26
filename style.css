@@ -68,6 +68,67 @@ body {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	position: relative;
+	z-index: 3000;
+}
+
+.stats-left {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.icon-btn {
+	background: #000;
+	border: 2px solid #fff;
+	color: #fff;
+	font-size: 1.2em;
+	padding: 4px 8px;
+	cursor: pointer;
+	line-height: 1;
+}
+
+.icon-btn:hover {
+	background: var(--accent-color);
+	color: #000;
+	border-color: var(--accent-color);
+}
+
+#settings-modal {
+	display: none;
+	position: fixed;
+	top: 60px;
+	left: 20px;
+	z-index: 3001;
+}
+
+#settings-modal .modal-content {
+	background: #000;
+	border: var(--border-width) solid #fff;
+	padding: 15px;
+	width: 300px;
+	box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
+	text-align: center;
+}
+
+#settings-modal .modal-content h2 {
+	margin-top: 0;
+	font-size: 1em;
+	border-bottom: 1px solid #fff;
+	padding-bottom: 5px;
+	margin-bottom: 10px;
+}
+
+.setting-group p {
+	font-size: 0.8em;
+	color: #aaa;
+	margin-bottom: 10px;
+}
+
+#close-settings-btn {
+	margin-top: 15px;
+	width: 100%;
+	font-size: 0.8em;
 }
 
 .arena-container {
@@ -413,6 +474,7 @@ button:active {
 	gap: 10px;
 	padding: 10px;
 	border-bottom: var(--border-width) solid #222;
+	flex-wrap: wrap;
 }
 
 .action-btn {

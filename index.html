@@ -6,12 +6,18 @@
     <title>Song Ranker</title>
     <link rel="icon" type="image/x-icon" href="Art/favicon.ico" />
     <meta name="darkreader-lock" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-    <link rel="stylesheet" href="style.css?v=modeoptions" />
+    <link rel="stylesheet" href="style.css?v=weightedshuffle" />
   </head>
 
   <body>
     <div id="stats-bar">
+      <div class="stats-left">
+        <button id="settings-btn" class="icon-btn">☰</button>
+      </div>
       <span id="personal-vote-stat" style="color: var(--accent-color)"
         >YOUR VOTES: 0</span
       >
@@ -107,13 +113,7 @@
             Change Folder
           </button>
           <button id="play-list-btn" class="action-btn">Play This List</button>
-          <button
-            id="reset-btn"
-            class="action-btn"
-            style="border-color: #500; color: #f55"
-          >
-            Reset Ratings
-          </button>
+          <button id="weighted-shuffle-btn" class="action-btn" title="Weighted shuffle. Higher ranked songs play more often.">Weighted Shuffle</button>
         </div>
 
         <ul id="ranking-list">
@@ -161,9 +161,32 @@
     <audio id="audioA"></audio>
     <audio id="audioB"></audio>
 
+    <div id="update-toast" class="hidden" style="position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); background: #111; border: 2px solid var(--accent-color); color: #fff; padding: 10px 16px; z-index: 1500; font-size: 0.85em; text-align: center;">
+      Updated! Your ratings were kept.
+    </div>
+    <div id="settings-modal">
+      <div class="modal-content">
+        <h2>SETTINGS</h2>
+        <div class="setting-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+          <p>Save Data</p>
+          <p style="font-size: 0.75em; color: #888; margin-bottom: 10px;">Export before updating, Import after. Ratings survive even if you move the folder.</p>
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="export-btn" class="action-btn">Export Data</button>
+            <button id="import-btn" class="action-btn">Import Data</button>
+            <input type="file" id="import-input" accept=".json" hidden />
+          </div>
+        </div>
+        <div class="setting-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+          <p style="color: #ff4444; font-size: 0.9em;">Danger Zone</p>
+          <button id="reset-btn" style="background: #300; border: 2px solid #ff4444; color: #ff4444; padding: 10px; cursor: pointer; font-family: var(--ui-font); width: 100%;">Reset Ratings</button>
+          <p style="font-size: 0.7em; color: #666; margin-top: 6px;">Change folder is in the ranking sidebar.</p>
+        </div>
+        <button id="close-settings-btn" class="action-btn" style="margin-top: 15px; width: 100%;">Close</button>
+      </div>
+    </div>
     <footer>
       <p class="credits">
-        Fan Project. stripped from
+        <span id="app-version" style="color: #555; margin-right: 10px;">v1.1.0</span>Fan Project. stripped from
         <a
           href="https://github.com/stavros-alt/drSongRanker"
           target="_blank"
@@ -174,6 +197,6 @@
     </footer>
 
     <input type="file" id="folder-input" webkitdirectory multiple hidden />
-    <script src="app.js?v=modeoptions"></script>
+    <script src="app.js?v=weightedshuffle"></script>
   </body>
 </html>

@@ -44,7 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	const playerCloseBtn = document.getElementById("player-close-btn");
 	const playlistAudio = document.getElementById("playlist-audio");
 	const playListBtn = document.getElementById("play-list-btn");
+	const weightedShuffleBtn = document.getElementById("weighted-shuffle-btn");
 	const rankingList = document.getElementById("ranking-list");
+	const settingsBtn = document.getElementById("settings-btn");
+	const settingsModal = document.getElementById("settings-modal");
+	const closeSettingsBtn = document.getElementById("close-settings-btn");
 	const volumeSlider = document.getElementById("volume-slider");
 	const playerProgress = document.getElementById("player-progress");
 	const playerCurrentTime = document.getElementById("player-current-time");
@@ -87,10 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		return /Chrome|CriOS|Edg|OPR/.test(navigator.userAgent);
 	}
 
+	const APP_VERSION = "1.1.0";
 	const PREVIEW_DURATION = 10000;
 	const PREVIEW_START_TIME = 30;
 
 	const STATE_KEY = "localSongRanker";
+	const VERSION_KEY = "localSongRankerVersion";
 	const AUDIO_EXTENSIONS = new Set([
 		"mp3",
 		"ogg",
@@ -108,6 +114,24 @@ document.addEventListener("DOMContentLoaded", () => {
 	// ratings live in localStorage keyed by song path. dropping the same
 	// folder again restores everything.
 	const state = loadState();
+
+	// version check. i show a toast if stored version differs and bump it.
+	// ratings stay untouched only version key changes
+	(function handleVersion() {
+		try {
+			const stored = localStorage.getItem(VERSION_KEY);
+			const verEl = document.getElementById("app-version");
+			if (verEl) verEl.textContent = "v" + APP_VERSION;
+			if (stored && stored !== APP_VERSION) {
+				const toast = document.getElementById("update-toast");
+				if (toast) {
+					toast.classList.remove("hidden");
+					setTimeout(() => toast.classList.add("hidden"), 3000);
+				}
+			}
+			if (stored !== APP_VERSION) localStorage.setItem(VERSION_KEY, APP_VERSION);
+		} catch (e) {}
+	})();
 
 	function loadState() {
 		try {
@@ -1204,6 +1228,18 @@ document.addEventListener("DOMContentLoaded", () => {
 	let playlist = [];
 	let currentPlaylistIndex = 0;
 	let isPlaylistPlaying = false;
+	let isWeightedPlaylist = false;
+
+	function getWeightForShuffle(song) {
+		return Math.max(1, getRating(song));
+	}
+
+	function weightedShuffle(songs, getWeight) {
+		return [...songs]
+			.map((s) => ({ s, key: Math.pow(Math.random(), 1 / getWeight(s)) }))
+			.sort((a, b) => b.key - a.key)
+			.map((x) => x.s);
+	}
 
 	function generateAndStartPlaylist() {
 		const sourceSongs = [...getActiveSongs()].sort(
@@ -1217,11 +1253,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		playlist = sourceSongs;
 		currentPlaylistIndex = 0;
+		isWeightedPlaylist = false;
 
 		// show the buttons again.
 		playerPrevBtn.style.visibility = "visible";
 		playerNextBtn.style.visibility = "visible";
 
+		musicPlayerBar.classList.remove("hidden");
+		playSongInPlaylist(currentPlaylistIndex);
+	}
+
+	function generateAndStartWeightedPlaylist() {
+		const sourceSongs = [...getActiveSongs()];
+		if (sourceSongs.length === 0) {
+			alert("No songs found. Load a folder first.");
+			return;
+		}
+		playlist = weightedShuffle(sourceSongs, (s) => getWeightForShuffle(s));
+		currentPlaylistIndex = 0;
+		isWeightedPlaylist = true;
+		playerPrevBtn.style.visibility = "visible";
+		playerNextBtn.style.visibility = "visible";
 		musicPlayerBar.classList.remove("hidden");
 		playSongInPlaylist(currentPlaylistIndex);
 	}
@@ -1244,7 +1296,16 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function playSongInPlaylist(index) {
-		if (index < 0 || index >= playlist.length) return;
+		if (playlist.length === 0) return;
+		if (index < 0) index = 0;
+		if (index >= playlist.length) {
+			if (isWeightedPlaylist) {
+				playlist = weightedShuffle([...playlist], (s) => getWeightForShuffle(s));
+				index = 0;
+			} else {
+				return;
+			}
+		}
 
 		stopAllMusic(); // no overlapping audio.
 		currentPlaylistIndex = index;
@@ -1277,6 +1338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	playListBtn.addEventListener("click", generateAndStartPlaylist);
+	if (weightedShuffleBtn) weightedShuffleBtn.addEventListener("click", generateAndStartWeightedPlaylist);
 
 	playerPrevBtn.addEventListener("click", () =>
 		playSongInPlaylist(currentPlaylistIndex - 1),
@@ -1295,6 +1357,69 @@ document.addEventListener("DOMContentLoaded", () => {
 	playlistAudio.addEventListener("ended", () => {
 		playSongInPlaylist(currentPlaylistIndex + 1);
 	});
+
+	if (playlistAudio) {
+		playlistAudio.addEventListener("error", () => {
+			playSongInPlaylist(currentPlaylistIndex + 1);
+		});
+	}
+
+	// export import keeps ratings around. ratings keyed by path survive
+	// folder moves and app updates, i just dump and reload them when needed
+	function doExport() {
+		try {
+			const raw = localStorage.getItem(STATE_KEY);
+			if (!raw) {
+				alert("Nothing to export yet. Rank some songs first.");
+				return;
+			}
+			const blob = new Blob([raw], { type: "application/json" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "songRankerBackup.json";
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			alert("Export failed: " + e.message);
+		}
+	}
+	function wireImport(btn, input) {
+		if (!btn || !input) return;
+		btn.addEventListener("click", () => input.click());
+		input.addEventListener("change", async (e) => {
+			const file = e.target.files[0];
+			if (!file) return;
+			try {
+				const text = await file.text();
+				JSON.parse(text);
+				localStorage.setItem(STATE_KEY, text);
+				alert("Import done. Reloading.");
+				location.reload();
+			} catch (err) {
+				alert("Import failed: " + err.message);
+			}
+			e.target.value = "";
+		});
+	}
+	document.getElementById("export-btn")?.addEventListener("click", doExport);
+	wireImport(document.getElementById("import-btn"), document.getElementById("import-input"));
+
+	if (settingsBtn && settingsModal) {
+		settingsBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			settingsModal.style.display = settingsModal.style.display === "block" ? "none" : "block";
+		});
+		closeSettingsBtn?.addEventListener("click", () => (settingsModal.style.display = "none"));
+		document.addEventListener("click", (e) => {
+			if (settingsModal.style.display === "block" && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
+				settingsModal.style.display = "none";
+			}
+		});
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") settingsModal.style.display = "none";
+		});
+	}
 
 	// volume
 	const isIOS =
