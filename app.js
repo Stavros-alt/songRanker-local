@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		return /Chrome|CriOS|Edg|OPR/.test(navigator.userAgent);
 	}
 
-	const APP_VERSION = "1.1.0";
+	const APP_VERSION = "1.1.1";
 	const PREVIEW_DURATION = 10000;
 	const PREVIEW_START_TIME = 30;
 
@@ -143,12 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
 					history: parsed.history || null,
 					recentMatches: parsed.recentMatches || [],
 					preventDuplicates:
-						parsed.preventDuplicates !== undefined
-							? parsed.preventDuplicates
-							: true,
-					volume: parseFloat(
-						parsed.volume !== undefined ? parsed.volume : "0.5",
-					),
+						parsed.preventDuplicates === undefined ? true : parsed.preventDuplicates,
+					volume: parseFloat(parsed.volume === undefined ? "0.5" : parsed.volume),
 					songRatings: parsed.songRatings || {},
 				};
 			}
@@ -347,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 			db.close();
 			return handle || null;
-		} catch (e) {
+		} catch {
 			return null;
 		}
 	}
@@ -472,7 +468,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							dirHandle = h;
 							break;
 						}
-					} catch (err) {
+					} catch {
 						// fall through
 					}
 				}
@@ -751,8 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					Math.floor(availableSongs.length * 0.25),
 				);
 				const uncertaintyPool = sortedByVotes.slice(0, uncertaintyPoolSize);
-				song1 =
-					uncertaintyPool[Math.floor(Math.random() * uncertaintyPool.length)];
+				song1 = uncertaintyPool[Math.floor(Math.random() * uncertaintyPool.length)];
 			} else if (roll < 0.9) {
 				// 30% for top rated
 				const sortedByRating = [...availableSongs].sort(
@@ -763,8 +758,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				song1 = topPool[Math.floor(Math.random() * topPool.length)];
 			} else {
 				// 10% pure chaos
-				song1 =
-					availableSongs[Math.floor(Math.random() * availableSongs.length)];
+				song1 = availableSongs[Math.floor(Math.random() * availableSongs.length)];
 			}
 
 			const sortedOpponents = [...availableSongs]
@@ -813,10 +807,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			const sortedByRating = [...availableSongs].sort(
 				(a, b) => getRating(b) - getRating(a),
 			);
-			const rankA =
-				sortedByRating.findIndex((s) => s.id === currentSongA.id) + 1;
-			const rankB =
-				sortedByRating.findIndex((s) => s.id === currentSongB.id) + 1;
+			const rankA = sortedByRating.findIndex((s) => s.id === currentSongA.id) + 1;
+			const rankB = sortedByRating.findIndex((s) => s.id === currentSongB.id) + 1;
 
 			songARank.textContent = `#${rankA}`;
 			songBRank.textContent = `#${rankB}`;
@@ -888,13 +880,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const winnerChange = newWinnerRating - getRating(winnerSong);
 			const loserChange = newLoserRating - getRating(loserSong);
 
-			recordMatchHistory(
-				winnerSong,
-				loserSong,
-				false,
-				winnerChange,
-				loserChange,
-			);
+			recordMatchHistory(winnerSong, loserSong, false, winnerChange, loserChange);
 
 			winnerSong.rating = newWinnerRating;
 			loserSong.rating = newLoserRating;
@@ -917,7 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	function recordMatchHistory(
 		winner,
-		loser,
+		_loser,
 		isTie = false,
 		winnerChange = 0,
 		loserChange = 0,
@@ -1017,7 +1003,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const playPromise = audioEl.play();
 			if (playPromise !== undefined) {
 				playPromise
-					.then((_) => {
+					.then(() => {
 						playerPlayBtn.textContent = "⏸";
 						activePreviewTimeout = setTimeout(() => {
 							audioEl.pause();
@@ -1114,9 +1100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	function resetState() {
 		if (
-			confirm(
-				"THIS WILL ERASE ALL YOUR VOTES AND RANKINGS FOREVER. ARE YOU SURE?",
-			)
+			confirm("THIS WILL ERASE ALL YOUR VOTES AND RANKINGS FOREVER. ARE YOU SURE?")
 		) {
 			localStorage.removeItem(STATE_KEY);
 			location.reload();
@@ -1236,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	function weightedShuffle(songs, getWeight) {
 		return [...songs]
-			.map((s) => ({ s, key: Math.pow(Math.random(), 1 / getWeight(s)) }))
+			.map((s) => ({ s, key: Math.random() ** (1 / getWeight(s)) }))
 			.sort((a, b) => b.key - a.key)
 			.map((x) => x.s);
 	}
@@ -1338,7 +1322,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	playListBtn.addEventListener("click", generateAndStartPlaylist);
-	if (weightedShuffleBtn) weightedShuffleBtn.addEventListener("click", generateAndStartWeightedPlaylist);
+	if (weightedShuffleBtn)
+		weightedShuffleBtn.addEventListener(
+			"click",
+			generateAndStartWeightedPlaylist,
+		);
 
 	playerPrevBtn.addEventListener("click", () =>
 		playSongInPlaylist(currentPlaylistIndex - 1),
@@ -1403,16 +1391,27 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 	document.getElementById("export-btn")?.addEventListener("click", doExport);
-	wireImport(document.getElementById("import-btn"), document.getElementById("import-input"));
+	wireImport(
+		document.getElementById("import-btn"),
+		document.getElementById("import-input"),
+	);
 
 	if (settingsBtn && settingsModal) {
 		settingsBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
-			settingsModal.style.display = settingsModal.style.display === "block" ? "none" : "block";
+			settingsModal.style.display =
+				settingsModal.style.display === "block" ? "none" : "block";
 		});
-		closeSettingsBtn?.addEventListener("click", () => (settingsModal.style.display = "none"));
+		closeSettingsBtn?.addEventListener(
+			"click",
+			() => (settingsModal.style.display = "none"),
+		);
 		document.addEventListener("click", (e) => {
-			if (settingsModal.style.display === "block" && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
+			if (
+				settingsModal.style.display === "block" &&
+				!settingsModal.contains(e.target) &&
+				!settingsBtn.contains(e.target)
+			) {
 				settingsModal.style.display = "none";
 			}
 		});
@@ -1422,8 +1421,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	// volume
-	const isIOS =
-		/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+	const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 	function initVolume() {
 		if (volumeSlider) {
@@ -1526,14 +1524,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (dropTitle) dropTitle.textContent = "YOUR SAVED FOLDER IS READY";
 		try {
 			reconnectBtn.textContent = `Reconnect: ${handle.name}`;
-		} catch (e) {
+		} catch {
 			reconnectBtn.textContent = "Reconnect saved folder";
 		}
-		browseBtn.classList.add("hidden");
+		// browse stays visible. saved folders can live on a device that gets
+		// unplugged, and reconnect alone would leave nowhere to go.
+		browseBtn.classList.remove("hidden");
 		reconnectBtn.classList.remove("hidden");
 		const hint = document.getElementById("reconnect-hint");
 		if (hint) hint.classList.remove("hidden");
-		setDropStatus("one click to reconnect your saved folder.");
+		setDropStatus("if that folder is gone, choose a different one.");
 	}
 
 	reconnectBtn.addEventListener("click", async () => {
@@ -1541,14 +1541,27 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!handle) return;
 		try {
 			const perm = await handle.requestPermission({ mode: "read" });
-			if (perm !== "granted") return;
+			if (perm !== "granted") {
+				setDropStatus("browser said no to that folder. choose another one below.");
+				return;
+			}
 			reconnectBtn.classList.add("hidden");
 			const files = [];
 			await walkDirHandle(handle, "", files);
 			if (files.length) acceptSongs(files);
 		} catch (e) {
 			console.error("reconnect failed:", e.message);
+			// a handle whose device is gone throws here. silence on the click
+			// reads as a broken button, so say what happened.
+			setDropStatus("that folder is not reachable. choose a different one.");
 		}
+	});
+
+	// the header copy says click to browse. body click opens the picker
+	// while every button keeps its own listener.
+	dropZone.addEventListener("click", (e) => {
+		if (e.target.closest("button")) return;
+		pickFolder();
 	});
 
 	(async () => {
@@ -1602,12 +1615,12 @@ document.addEventListener("DOMContentLoaded", () => {
 				);
 			}
 			showCopyOffer();
-		} else if (!caps.idb) {
+		} else if (caps.idb) {
+			setDropStatus("no saved folder yet.");
+		} else {
 			setDropStatus(
 				"browser storage is blocked, so the folder can't be remembered.",
 			);
-		} else {
-			setDropStatus("no saved folder yet.");
 		}
 	})();
 });

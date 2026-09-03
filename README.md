@@ -5,12 +5,13 @@ better, it keeps score with elo, and at the end you have a ranking.
 
 ## run it (for everyone)
 
-1. download the latest zip from Releases and unzip it
+1. on the GitHub page click the green **Code** button and pick
+   **Download ZIP**, then unzip it
 2. double click `index.html`
 3. drop your songs folder in the window
 
 if songs don't play, use the server instead: open a terminal in the
-folder and run `python3 serve.py`, then open http://localhost:8000.
+folder and run `python3 serve.py`, then open <http://localhost:8000>.
 that also fixes browser caching.
 
 ## updating (keeps your ratings)
@@ -18,7 +19,7 @@ that also fixes browser caching.
 ratings are saved in your browser, not in the folder. updating the
 app does not delete them.
 
-**easiest keep the same folder:** unzip the new release *on top of*
+**easiest keep the same folder:** unzip the new download *on top of*
 the old `songRanker-local` folder and click Replace. same
 `file:///.../index.html` or same `http://localhost:8000` so same
 storage, no export needed. this is the seamless path for everyone,
@@ -26,10 +27,11 @@ including first update from the current GitHub build which has no
 Export button.
 
 **going forward (1.1.0+):**
+
 1. click `Export Data` at the bottom of the ranking list so it
    downloads `songRanker-backup.json`
 2. replace the old app folder with the new one
-3. open the new `index.html` (or http://localhost:8000) and click
+3. open the new `index.html` (or <http://localhost:8000>) and click
    `Import Data`, pick the json file. it reloads intact.
 
 if you run via `python3 serve.py` you never need to export. just
@@ -67,5 +69,5 @@ mp3, ogg, wav, flac, m4a, aac, opus, webm, wma, aiff.
 
 ## credits
 
-stripped from https://github.com/stavros-alt/drSongRanker. credit the
+stripped from <https://github.com/stavros-alt/drSongRanker>. credit the
 original if you publish something based on it.
