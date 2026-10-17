@@ -511,6 +511,9 @@ button:active {
 	counter-increment: rank-counter;
 	cursor: pointer;
 	transition: background 0.1s;
+	/* offscreen rows skip rendering. big scroll win on weak hardware. */
+	content-visibility: auto;
+	contain-intrinsic-size: auto 46px;
 }
 
 #ranking-list li:hover {

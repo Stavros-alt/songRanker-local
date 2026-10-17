@@ -825,9 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		audioA.src = getObjectUrl(currentSongA.file);
 		audioB.src = getObjectUrl(currentSongB.file);
-
-		audioA.load();
-		audioB.load();
+		// no eager load(). buffers on first play instead.
 
 		arena.classList.remove("slide-in");
 		setTimeout(() => {
@@ -1146,8 +1144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			chooseBMobileBtn.textContent = `I prefer ${currentSongB.name}`;
 		audioA.src = getObjectUrl(currentSongA.file);
 		audioB.src = getObjectUrl(currentSongB.file);
-		audioA.load();
-		audioB.load();
+		// same as matchup setup. buffers on first play.
 
 		if (undoBtn) undoBtn.disabled = true;
 	}
