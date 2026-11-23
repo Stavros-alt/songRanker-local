@@ -237,16 +237,13 @@ h1 {
 /* mouse hovering stuff */
 @media (hover: hover) {
 	.song-card:hover {
-		transform: translate(-4px, -4px);
 		border-color: var(--accent-color);
-		box-shadow: 4px 4px 0 var(--accent-color);
 	}
 
 	button:hover {
 		background: var(--accent-color);
 		color: #000;
 		border-color: var(--accent-color);
-		box-shadow: 0 0 10px var(--accent-color);
 	}
 
 	.preview-btn:hover,
@@ -289,7 +286,7 @@ button {
 	font-size: 1em;
 	padding: 12px 24px;
 	cursor: pointer;
-	transition: all 0.1s;
+	transition: background 0.1s, color 0.1s, border-color 0.1s;
 	text-transform: uppercase;
 	font-weight: 700;
 }
@@ -298,7 +295,6 @@ button:hover {
 	background: var(--accent-color);
 	color: #000;
 	border-color: var(--accent-color);
-	box-shadow: 0 0 10px var(--accent-color);
 }
 
 button:active {
@@ -763,7 +759,7 @@ footer {
 	padding: 5px 15px;
 	font-size: 1.2em;
 	cursor: pointer;
-	transition: all 0.1s;
+	transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 
 @media (hover: hover) {
